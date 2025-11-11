@@ -4,7 +4,6 @@ import "@testing-library/jest-dom";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// ✅ Mock API configuration (no hardcoded URL)
 jest.mock("../src/lib/api", () => ({
   API_ENDPOINTS: {
     USERS: {
