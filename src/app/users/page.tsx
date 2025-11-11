@@ -21,13 +21,11 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Users } from "lucide-react";
 import { API_ENDPOINTS, fetcher } from "@/lib/api";
-import { User } from "@/lib/types";
+import type { User } from "@/lib/types";
 import UsersErrorBoundary from "@/components/error/UsersErrorBoundary";
 import Pagination from "@/components/ui/pagination";
-
-// Using fetcher from API library
 
 type SortConfig = {
   key: keyof Pick<User, "name" | "email" | "website">;
@@ -102,32 +100,38 @@ function UsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 py-10 px-4 flex justify-center">
-      <Card className="w-full max-w-6xl shadow-sm border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Users Directory
-          </CardTitle>
-          <CardDescription className="text-base text-muted-foreground">
-            Browse, search, and filter through our user database
-          </CardDescription>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-10 px-4 flex justify-center">
+      <Card className="w-full max-w-6xl shadow-lg border-primary/10 bg-card">
+        <CardHeader className="space-y-2 bg-gradient-to-r from-primary/10 to-primary/5 border-b border-primary/10">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-3xl font-bold text-primary">
+                Users Directory
+              </CardTitle>
+              <CardDescription className="text-base text-muted-foreground">
+                Browse, search, and filter through our user database
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* 🔍 Search Input */}
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <CardContent className="space-y-6 p-8">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/60" />
             <Input
               placeholder="Search users by name, email, or website..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 border-primary/20 focus:border-primary focus:ring-primary/30"
             />
           </div>
 
           {/* ⚠️ Error */}
           {error && (
-            <Alert variant="destructive" className="max-w-md mx-auto">
+            <Alert variant="destructive" className="max-w-md">
               <AlertDescription>
                 Failed to load users. Please try again later.
               </AlertDescription>
@@ -136,12 +140,10 @@ function UsersPage() {
 
           {/* ⏳ Loading */}
           {isLoading && (
-            <div className="space-y-3 animate-pulse">
+            <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex space-x-4 justify-center">
-                  <Skeleton className="h-4 w-[120px]" />
-                  <Skeleton className="h-4 w-[200px]" />
-                  <Skeleton className="h-4 w-[150px]" />
+                <div key={i} className="flex space-x-4">
+                  <Skeleton className="h-12 w-full" />
                 </div>
               ))}
             </div>
@@ -161,7 +163,7 @@ function UsersPage() {
                     <Button
                       variant="outline"
                       onClick={() => setSearchTerm("")}
-                      className="mt-2"
+                      className="mt-2 border-primary/30 text-primary hover:bg-primary/10"
                     >
                       Clear Search
                     </Button>
@@ -170,15 +172,15 @@ function UsersPage() {
               ) : (
                 <>
                   {/* 🖥 Desktop Table */}
-                  <div className="hidden md:block rounded-lg border overflow-hidden">
+                  <div className="hidden md:block rounded-lg border border-primary/10 overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-muted/30">
+                        <TableRow className="bg-primary/5 hover:bg-primary/5">
                           <TableHead>
                             <Button
                               variant="ghost"
                               onClick={() => handleSort("name")}
-                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                              className="h-auto p-0 font-semibold text-primary hover:bg-transparent hover:text-primary/80"
                             >
                               Name {getSortIcon("name")}
                             </Button>
@@ -187,7 +189,7 @@ function UsersPage() {
                             <Button
                               variant="ghost"
                               onClick={() => handleSort("email")}
-                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                              className="h-auto p-0 font-semibold text-primary hover:bg-transparent hover:text-primary/80"
                             >
                               Email {getSortIcon("email")}
                             </Button>
@@ -196,23 +198,27 @@ function UsersPage() {
                             <Button
                               variant="ghost"
                               onClick={() => handleSort("website")}
-                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                              className="h-auto p-0 font-semibold text-primary hover:bg-transparent hover:text-primary/80"
                             >
                               Website {getSortIcon("website")}
                             </Button>
                           </TableHead>
-                          <TableHead>Actions</TableHead>
+                          <TableHead className="text-primary font-semibold">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {paginatedUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className="hover:bg-muted/40 transition-colors"
+                            className="hover:bg-primary/5 transition-colors"
                           >
                             <TableCell>
                               <div>
-                                <div className="font-semibold">{user.name}</div>
+                                <div className="font-semibold text-foreground">
+                                  {user.name}
+                                </div>
                                 <div className="text-sm text-muted-foreground">
                                   @{user.username}
                                 </div>
@@ -221,7 +227,7 @@ function UsersPage() {
                             <TableCell>
                               <a
                                 href={`mailto:${user.email}`}
-                                className="text-primary hover:underline"
+                                className="text-primary hover:text-primary/80 hover:underline transition-colors"
                               >
                                 {user.email}
                               </a>
@@ -231,13 +237,18 @@ function UsersPage() {
                                 href={`http://${user.website}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary hover:underline"
+                                className="text-primary hover:text-primary/80 hover:underline transition-colors"
                               >
                                 {user.website}
                               </a>
                             </TableCell>
                             <TableCell>
-                              <Button variant="outline" size="sm" asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 bg-transparent"
+                              >
                                 <a href={`/users/${user.id}`}>View Details</a>
                               </Button>
                             </TableCell>
@@ -252,39 +263,39 @@ function UsersPage() {
                     {paginatedUsers.map((user) => (
                       <Card
                         key={user.id}
-                        className="p-4 shadow-sm border-border/50 hover:shadow-md transition-all"
+                        className="shadow-md border-primary/10 hover:shadow-lg hover:border-primary/20 transition-all"
                       >
-                        <div className="space-y-3">
-                          <div>
-                            <h3 className="font-semibold text-lg">
+                        <div className="p-4 space-y-4">
+                          <div className="border-l-4 border-primary pl-3">
+                            <h3 className="font-semibold text-lg text-foreground">
                               {user.name}
                             </h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-primary/70">
                               @{user.username}
                             </p>
                           </div>
 
-                          <div className="space-y-1 text-sm">
+                          <div className="space-y-2 text-sm bg-primary/5 p-3 rounded-lg">
                             <p>
-                              <span className="text-muted-foreground">
+                              <span className="text-muted-foreground font-medium">
                                 Email:
                               </span>{" "}
                               <a
                                 href={`mailto:${user.email}`}
-                                className="text-primary hover:underline"
+                                className="text-primary hover:text-primary/80 hover:underline transition-colors"
                               >
                                 {user.email}
                               </a>
                             </p>
                             <p>
-                              <span className="text-muted-foreground">
+                              <span className="text-muted-foreground font-medium">
                                 Website:
                               </span>{" "}
                               <a
                                 href={`http://${user.website}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary hover:underline"
+                                className="text-primary hover:text-primary/80 hover:underline transition-colors"
                               >
                                 {user.website}
                               </a>
@@ -292,10 +303,8 @@ function UsersPage() {
                           </div>
 
                           <Button
-                            variant="outline"
-                            size="sm"
                             asChild
-                            className="w-full"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
                           >
                             <a href={`/users/${user.id}`}>View Details</a>
                           </Button>
@@ -315,7 +324,7 @@ function UsersPage() {
                   onPageChange={setCurrentPage}
                   onItemsPerPageChange={(newItemsPerPage) => {
                     setItemsPerPage(newItemsPerPage);
-                    setCurrentPage(1); // Reset to first page when changing items per page
+                    setCurrentPage(1);
                   }}
                   disabled={isLoading}
                 />
