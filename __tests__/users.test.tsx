@@ -1,30 +1,25 @@
-/**
- * @jest-environment jsdom
- */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-// Mock API configuration
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+// ✅ Mock API configuration (no hardcoded URL)
 jest.mock("../src/lib/api", () => ({
   API_ENDPOINTS: {
     USERS: {
-      LIST: "https://jsonplaceholder.typicode.com/users",
-      DETAIL: (id: string) =>
-        `https://jsonplaceholder.typicode.com/users/${id}`,
+      LIST: `${BASE_URL}/users`,
+      DETAIL: (id: string) => `${BASE_URL}/users/${id}`,
     },
   },
   fetcher: jest.fn(),
 }));
 
-// Mock SWR
-jest.mock("swr", () => {
-  return jest.fn();
-});
-
+// ✅ Mock SWR
+jest.mock("swr", () => jest.fn());
 const mockSWR = require("swr") as jest.Mock;
 
-// Mock user data
+// ✅ Mock user data
 const mockUsers = [
   {
     id: 1,
@@ -80,7 +75,6 @@ describe("Users Page Tests", () => {
       isLoading: true,
     });
 
-    // Import component dynamically to avoid module loading issues
     const UsersPage = require("../src/app/users/page").default;
     render(<UsersPage />);
 
@@ -115,8 +109,7 @@ describe("Users Page Tests", () => {
     const UsersPage = require("../src/app/users/page").default;
     render(<UsersPage />);
 
-    // Use getAllByText to handle multiple instances (desktop + mobile)
-    expect(screen.getAllByText("John Doe")).toHaveLength(2); // Desktop table + mobile card
+    expect(screen.getAllByText("John Doe")).toHaveLength(2); // Desktop + Mobile
     expect(screen.getAllByText("Jane Smith")).toHaveLength(2);
     expect(screen.getAllByText("john@example.com")).toHaveLength(2);
     expect(screen.getAllByText("jane@example.com")).toHaveLength(2);
@@ -134,16 +127,13 @@ describe("Users Page Tests", () => {
     const UsersPage = require("../src/app/users/page").default;
     render(<UsersPage />);
 
-    // Find search input
     const searchInput = screen.getByPlaceholderText(
       "Search users by name, email, or website..."
     );
 
-    // Type in search input
     await user.type(searchInput, "John");
 
-    // John should be visible (multiple instances for responsive design), Jane should not
-    expect(screen.getAllByText("John Doe")).toHaveLength(2); // Desktop + mobile
+    expect(screen.getAllByText("John Doe")).toHaveLength(2);
     expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
   });
 

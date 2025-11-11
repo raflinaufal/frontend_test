@@ -4,21 +4,20 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-// Mock API configuration
-const mockServerFetcher = jest.fn();
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+const mockServerFetcher = jest.fn();
 jest.mock("../src/lib/api", () => ({
   API_ENDPOINTS: {
     USERS: {
-      LIST: "https://jsonplaceholder.typicode.com/users",
-      DETAIL: (id: string) =>
-        `https://jsonplaceholder.typicode.com/users/${id}`,
+      LIST: `${BASE_URL}/users`,
+      DETAIL: (id: string) => `${BASE_URL}/users/${id}`,
     },
   },
   serverFetcher: mockServerFetcher,
 }));
 
-// Mock Next.js router and params
+// ✅ Mock Next.js router and params
 const mockParams = { id: "1" };
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -27,10 +26,10 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock fetch globally (not used directly, but serverFetcher uses it internally)
+// ✅ Mock global fetch (digunakan di serverFetcher)
 global.fetch = jest.fn();
 
-// Mock user data
+// ✅ Mock user data
 const mockUser = {
   id: 1,
   name: "John Doe",
@@ -61,13 +60,9 @@ describe("User Details Page (Task 3)", () => {
   });
 
   it("renders user details successfully", async () => {
-    // Mock successful serverFetcher
     mockServerFetcher.mockResolvedValue(mockUser);
-
-    // Import and render component
     const UserDetailPage = require("../src/app/users/[id]/page").default;
 
-    // Render with mock params
     const component = await UserDetailPage({ params: mockParams });
     render(component);
 
@@ -79,7 +74,6 @@ describe("User Details Page (Task 3)", () => {
   });
 
   it("renders user not found when fetch fails", async () => {
-    // Mock failed serverFetcher - returns null instead of throwing
     mockServerFetcher.mockResolvedValue(null);
 
     const UserDetailPage = require("../src/app/users/[id]/page").default;
@@ -96,17 +90,15 @@ describe("User Details Page (Task 3)", () => {
 
   it("displays all contact information correctly", async () => {
     mockServerFetcher.mockResolvedValue(mockUser);
-
     const UserDetailPage = require("../src/app/users/[id]/page").default;
+
     const component = await UserDetailPage({ params: mockParams });
     render(component);
 
-    // Check contact sections
     expect(screen.getByText("Personal Information")).toBeInTheDocument();
     expect(screen.getByText("Company")).toBeInTheDocument();
     expect(screen.getByText("Address")).toBeInTheDocument();
 
-    // Check contact details
     expect(screen.getByText("123-456-7890")).toBeInTheDocument();
     expect(screen.getByText("Apt 1 123 Main St")).toBeInTheDocument();
     expect(screen.getByText("Anytown, 12345")).toBeInTheDocument();
@@ -114,20 +106,17 @@ describe("User Details Page (Task 3)", () => {
 
   it("has correct mailto and tel links", async () => {
     mockServerFetcher.mockResolvedValue(mockUser);
-
     const UserDetailPage = require("../src/app/users/[id]/page").default;
+
     const component = await UserDetailPage({ params: mockParams });
     render(component);
 
-    // Check email link
     const emailLink = screen.getByRole("link", { name: /john@example.com/i });
     expect(emailLink).toHaveAttribute("href", "mailto:john@example.com");
 
-    // Check phone link
     const phoneLink = screen.getByRole("link", { name: /123-456-7890/i });
     expect(phoneLink).toHaveAttribute("href", "tel:1234567890");
 
-    // Check website link
     const websiteLink = screen.getByRole("link", { name: /johndoe.com/i });
     expect(websiteLink).toHaveAttribute("href", "http://johndoe.com");
     expect(websiteLink).toHaveAttribute("target", "_blank");
@@ -135,20 +124,20 @@ describe("User Details Page (Task 3)", () => {
 
   it("displays company information correctly", async () => {
     mockServerFetcher.mockResolvedValue(mockUser);
-
     const UserDetailPage = require("../src/app/users/[id]/page").default;
+
     const component = await UserDetailPage({ params: mockParams });
     render(component);
 
     expect(screen.getByText("Test Company")).toBeInTheDocument();
-    expect(screen.getByText(/Test catchphrase/i)).toBeInTheDocument(); // Use regex for flexible matching
+    expect(screen.getByText(/Test catchphrase/i)).toBeInTheDocument();
     expect(screen.getByText(/test business/i)).toBeInTheDocument();
   });
 
   it("has navigation back to users list", async () => {
     mockServerFetcher.mockResolvedValue(mockUser);
-
     const UserDetailPage = require("../src/app/users/[id]/page").default;
+
     const component = await UserDetailPage({ params: mockParams });
     render(component);
 
@@ -164,8 +153,8 @@ describe("User Details Metadata Generation", () => {
 
   it("generates correct metadata for valid user", async () => {
     mockServerFetcher.mockResolvedValue(mockUser);
-
     const { generateMetadata } = require("../src/app/users/[id]/page");
+
     const metadata = await generateMetadata({ params: { id: "1" } });
 
     expect(metadata.title).toBe("John Doe - User Profile");
@@ -178,8 +167,8 @@ describe("User Details Metadata Generation", () => {
 
   it("generates not found metadata for invalid user", async () => {
     mockServerFetcher.mockResolvedValue(null);
-
     const { generateMetadata } = require("../src/app/users/[id]/page");
+
     const metadata = await generateMetadata({ params: { id: "999" } });
 
     expect(metadata.title).toBe("User Not Found");
