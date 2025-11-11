@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import useSWR from "swr";
 import {
   Table,
@@ -22,53 +22,29 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { API_ENDPOINTS, fetcher } from "@/lib/api";
+import { User } from "@/lib/types";
+import UsersErrorBoundary from "@/components/error/UsersErrorBoundary";
+import Pagination from "@/components/ui/pagination";
 
-// 🧩 Type definition
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  phone: string;
-  website: string;
-  address: {
-    street: string;
-    suite: string;
-    city: string;
-    zipcode: string;
-    geo: {
-      lat: string;
-      lng: string;
-    };
-  };
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
-
-// ⚡ Fetcher for SWR
-const fetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) throw new Error("Failed to fetch users");
-    return res.json();
-  });
+// Using fetcher from API library
 
 type SortConfig = {
   key: keyof Pick<User, "name" | "email" | "website">;
   direction: "asc" | "desc";
 } | null;
 
-export default function UsersPage() {
+function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const {
     data: users,
     error,
     isLoading,
-  } = useSWR<User[]>("https://jsonplaceholder.typicode.com/users", fetcher);
+  } = useSWR<User[]>(API_ENDPOINTS.USERS.LIST, fetcher);
 
   // 🔍 Filtering & sorting logic
   const filteredAndSortedUsers = useMemo(() => {
@@ -93,6 +69,18 @@ export default function UsersPage() {
 
     return filtered;
   }, [users, searchTerm, sortConfig]);
+
+  // 📄 Pagination logic
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedUsers.slice(startIndex, endIndex);
+  }, [filteredAndSortedUsers, currentPage, itemsPerPage]);
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortConfig]);
 
   // 🔽 Sorting handler
   const handleSort = (key: keyof Pick<User, "name" | "email" | "website">) => {
@@ -217,7 +205,7 @@ export default function UsersPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredAndSortedUsers.map((user) => (
+                        {paginatedUsers.map((user) => (
                           <TableRow
                             key={user.id}
                             className="hover:bg-muted/40 transition-colors"
@@ -261,7 +249,7 @@ export default function UsersPage() {
 
                   {/* 📱 Mobile Card View */}
                   <div className="md:hidden grid gap-4">
-                    {filteredAndSortedUsers.map((user) => (
+                    {paginatedUsers.map((user) => (
                       <Card
                         key={user.id}
                         className="p-4 shadow-sm border-border/50 hover:shadow-md transition-all"
@@ -318,18 +306,33 @@ export default function UsersPage() {
                 </>
               )}
 
-              {/* 🧮 Results Count */}
+              {/* 📄 Pagination */}
               {filteredAndSortedUsers.length > 0 && (
-                <div className="text-sm text-muted-foreground text-center pt-4">
-                  Showing {filteredAndSortedUsers.length} of{" "}
-                  {users?.length || 0} users
-                  {searchTerm && ` matching "${searchTerm}"`}
-                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredAndSortedUsers.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={(newItemsPerPage) => {
+                    setItemsPerPage(newItemsPerPage);
+                    setCurrentPage(1); // Reset to first page when changing items per page
+                  }}
+                  disabled={isLoading}
+                />
               )}
             </>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Wrap with Error Boundary
+export default function UsersPageWithErrorBoundary() {
+  return (
+    <UsersErrorBoundary>
+      <UsersPage />
+    </UsersErrorBoundary>
   );
 }

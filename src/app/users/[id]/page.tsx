@@ -10,45 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Mail, Phone, Globe, MapPin, Building } from "lucide-react";
-
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  phone: string;
-  website: string;
-  address: {
-    street: string;
-    suite: string;
-    city: string;
-    zipcode: string;
-    geo: {
-      lat: string;
-      lng: string;
-    };
-  };
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
+import { API_ENDPOINTS, serverFetcher } from "@/lib/api";
+import { User } from "@/lib/types";
 
 // --- Data Fetcher (Server Side) ---
 async function getUser(id: string): Promise<User | null> {
-  try {
-    const res = await fetch(
-      `https://jsonplaceholder.typicode.com/users/${id}`,
-      {
-        next: { revalidate: 300 },
-      }
-    );
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return serverFetcher(API_ENDPOINTS.USERS.DETAIL(id));
 }
 
 // --- Loading Skeleton ---
